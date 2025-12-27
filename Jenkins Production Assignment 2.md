@@ -643,6 +643,64 @@ pipeline {
 <img width="545" height="77" alt="image" src="https://github.com/user-attachments/assets/58692662-c1bd-4f26-b499-56816a2dfc7f" />
 
 
+################################################################################
+
+<img width="527" height="217" alt="image" src="https://github.com/user-attachments/assets/adfc6a24-c18e-40c4-8f89-a53525184c32" />
+
+
+--------------
+def call(Map config) {
+    // Requirement: Apply naming conventions
+    def fullJobName = "PROD-${config.appName}-${env.BUILD_NUMBER}"
+
+    pipeline {
+        agent { label 'build-worker' }
+        stages {
+            stage('Checkout') {
+                steps {
+                    echo "Standardized Checkout for ${fullJobName}"
+                    git url: config.repoUrl, branch: 'main'
+                }
+            }
+            stage('Build') {
+                steps {
+                    sh 'mvn clean package -DskipTests'
+                }
+            }
+        }
+        post {
+            failure {
+                // Requirement: Notify and simulate failure
+                echo "ALERT: ${fullJobName} failed!"
+                mail to: 'madhusudhanachary.k@gmail.com',
+                     subject: "Job Failed: ${fullJobName}",
+                     body: "Build failed. View logs: ${env.BUILD_URL}"
+                
+                // Requirement: Archive failed logs
+                sh 'echo "Error details" > failure_report.txt'
+                archiveArtifacts artifacts: 'failure_report.txt'
+            }
+            always {
+                // Requirement: Manage disk usage/Cleanup
+                cleanWs()
+            }
+        }
+    }
+}
+---------------
+
+Jenkinsfile:
+
+@Library('my-shared-library') _
+standardPipeline(
+    appName: 'SimpleJavaApp',
+    repoUrl: 'https://github.com/Madhu427/simple-java-maven-app.git'
+)
+
+
+
+
+
 
 
 
