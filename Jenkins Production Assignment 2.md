@@ -488,6 +488,86 @@ pipeline {
 
 <img width="514" height="239" alt="image" src="https://github.com/user-attachments/assets/4d6d675a-9d33-46c0-853d-67ffdc118ff2" />
 
+########################################################
+
+<img width="419" height="203" alt="image" src="https://github.com/user-attachments/assets/ef515f21-164e-4b4e-ac6a-72fe9008ddb5" />
+
+
+
+<img width="786" height="70" alt="image" src="https://github.com/user-attachments/assets/57bdc5b7-7ea6-45e4-bfef-4263c66e3240" />
+
+<img width="554" height="275" alt="image" src="https://github.com/user-attachments/assets/ec7e4816-139c-4674-a1ea-c9d28a18ab8c" />
+
+<img width="682" height="311" alt="image" src="https://github.com/user-attachments/assets/518dbf33-12e6-41cc-b5d7-b6bf5e26c007" />
+
+---------------------
+pipeline {
+    // We set agent to 'none' at the top level so we can specify agents for each stage
+    agent none 
+
+    environment {
+        APP_NAME = "Simple-Java-App"
+    }
+
+    stages {
+        stage('Build and Test') {
+            // Task: Assign build jobs to specific agent
+            agent { label 'build-worker' } 
+            steps {
+                git branch: 'main', url: 'https://github.com/Madhu427/simple-java-maven-app.git'
+                
+                // Task: Simulate unit tests with retry logic
+                retry(2) {
+                    sh '''
+                        echo "Running tests on BUILD-WORKER node..."
+                        TEST_RESULT=0
+                        if [ $TEST_RESULT -eq 0 ]; then
+                            echo "Tests Passed!"
+                        else
+                            exit 1
+                        fi
+                    '''
+                }
+                
+                // Task: Save and Archive build artifacts
+                sh 'tar -czvf app-build-${BUILD_NUMBER}.tar.gz ./*'
+                archiveArtifacts artifacts: '*.tar.gz', fingerprint: true
+            }
+        }
+
+        stage('Deploy to Production') {
+            // Task: Assign different jobs/stages to different agents
+            agent { label 'production-slave' }
+            // Task: Use 'when' directive to ensure deployment only happens on main
+            when { branch 'main' } 
+            steps {
+                sh '''
+                    echo "Deploying to PRODUCTION node..."
+                    echo "Unpacking artifacts and simulating deployment..."
+                    # In a real scenario, you would copy the artifact from the master/build node
+                    echo "Deployment to Production Salve Successful!"
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "Pipeline finished. Check console logs for 'Building remotely on...' to verify nodes."
+        }
+    }
+}
+-------------------------
+
+<img width="818" height="515" alt="image" src="https://github.com/user-attachments/assets/53ca4062-b637-4251-ad6b-226f963759e6" />
+
+<img width="661" height="386" alt="image" src="https://github.com/user-attachments/assets/e28a8df1-dd9c-49e7-b185-2a327bdb523b" />
+
+
+
+
+
+
 
 
 
