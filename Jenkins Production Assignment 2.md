@@ -378,6 +378,120 @@ echo "Includes Service B Build: ${UPSTREAM_BUILD_NUMBER_SERVICE_B}" >> deploymen
 
 <img width="947" height="394" alt="image" src="https://github.com/user-attachments/assets/7ad7e64f-291c-415b-b620-aba4d09c5ab2" />
 
+########################################################################
+
+<img width="511" height="224" alt="image" src="https://github.com/user-attachments/assets/42383a1d-4f2b-42ab-8bec-dba60ffd91a5" />
+
+1. Environment Variables (environment)
+We define APP_NAME and CACHE_DIR globally. This makes the script maintainable; if your cache location changes, you only update it in one place.
+
+2. Simulated Caching
+We use a shell script to check if a directory exists.
+
+Logic: If the directory exists, we "reuse" dependencies.
+
+Logic: If not, we "fetch" them (simulate by creating a text file). This satisfies the requirement to use conditional logic instead of fetching every time.
+
+3. Retry Logic (retry)
+The retry(2) block is wrapped around the test stage. If the shell script exits with an error (exit 1), Jenkins will automatically restart that specific stage up to two additional times before marking the whole build as failed.
+
+4. Conditional Execution (when)
+This is a production safety feature. The when directive ensures that the "Build & Package" stage only runs on specific branches. If someone runs this pipeline on a temporary feature branch, Jenkins will skip the packaging stage to save resources.
+
+5. Post Conditions (post)
+success: Only triggers if every stage finishes without error. This is where we archive our .tar.gz artifacts so they appear on the Jenkins dashboard.
+
+failure: Useful for sending alerts or cleaning up the workspace if the build crashes.
+---------------------------------------
+pipeline {
+    agent any
+
+    environment {
+        // Task: Use of environment variables
+        APP_NAME = "MultiService-App"
+        CACHE_DIR = "maven_cache"
+    }
+
+    stages {
+        stage('Initialize & Cache') {
+            steps {
+                // Task: Simulate caching
+                sh '''
+                    if [ -d "${CACHE_DIR}" ]; then
+                        echo "Dependencies found in cache. Skipping download."
+                    else
+                        echo "Cache empty. Downloading dependencies..."
+                        mkdir ${CACHE_DIR}
+                        echo "dependency-v1.0" > ${CACHE_DIR}/lib.txt
+                    fi
+                '''
+            }
+        }
+
+        stage('Checkout Source') {
+            steps {
+                // Task: Proper use of stages and steps
+                git branch: 'main', url: 'https://github.com/Madhu427/simple-java-maven-app.git'
+            }
+        }
+
+        stage('Simulate Tests') {
+            // Task: Implement retry logic for test stages (max 2 retries)
+            retry(2) {
+                steps {
+                    sh '''
+                        echo "Running Unit Tests..."
+                        # Simulate a 10% chance of failure to test retry logic
+                        if [ $(( $RANDOM % 10 )) -eq 0 ]; then
+                            echo "Random network failure detected!"
+                            exit 1
+                        fi
+                        echo "Tests Passed!"
+                    '''
+                }
+            }
+        }
+
+        stage('Build & Package') {
+            // Task: Use of when directive to conditionally run stages
+            // Only runs if we are on the 'main' or 'prod' branch
+            when {
+                anyOf {
+                    branch 'main'; branch 'prod'
+                }
+            }
+            steps {
+                sh '''
+                    echo "Packaging ${APP_NAME}..."
+                    tar -czvf service-build-${BUILD_NUMBER}.tar.gz ./*
+                '''
+            }
+        }
+    }
+
+    post {
+        // Task: Proper use of post conditions
+        success {
+            echo "Build and Test successful! Ready for Deployment."
+            archiveArtifacts artifacts: '*.tar.gz', fingerprint: true
+        }
+        failure {
+            echo "Build failed. Check the logs for caching or test errors."
+        }
+    }
+}
+-----------------------------------------
+
+
+<img width="651" height="410" alt="image" src="https://github.com/user-attachments/assets/9cbb9316-3b6d-4946-bedc-414123ec2e6a" />
+
+
+<img width="514" height="239" alt="image" src="https://github.com/user-attachments/assets/4d6d675a-9d33-46c0-853d-67ffdc118ff2" />
+
+
+
+
+
 
 
 
