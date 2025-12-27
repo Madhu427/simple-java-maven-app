@@ -564,6 +564,85 @@ pipeline {
 <img width="661" height="386" alt="image" src="https://github.com/user-attachments/assets/e28a8df1-dd9c-49e7-b185-2a327bdb523b" />
 
 
+#############################################################################
+
+
+<img width="569" height="228" alt="image" src="https://github.com/user-attachments/assets/3c372057-40c4-4eb6-8fdc-665026c3f34e" />
+
+
+<img width="679" height="458" alt="image" src="https://github.com/user-attachments/assets/e3b54538-724f-4af4-bdb6-257a9a75f985" />
+
+-----------------
+pipeline {
+    agent { label 'production-slave' }
+
+    stages {
+        stage('Checkout Source') {
+            steps {
+                // Task: Source Code Management with Git
+                // For Job A use 'dev', for Job B use 'feature'
+                git branch: 'dev', url: 'https://github.com/Madhu427/simple-java-maven-app.git'
+            }
+        }
+
+        stage('Build and Simulate Tests') {
+            steps {
+                // Task: Run basic shell script logic to simulate unit tests
+                sh '''
+                    #!/bin/bash
+                    echo "Starting Build and Test Process..."
+                    
+                    # Simulate Test Result
+                    TEST_RESULT=1 
+                    
+                    if [ $TEST_RESULT -eq 0 ]; then
+                        echo "Unit Tests Passed Successfully!"
+                    else
+                        echo "Unit Tests Failed!"
+                        exit 1
+                    fi
+
+                    # Task: Save build artifacts (fake .tar.gz files) in workspace
+                    echo "Generating Build Version: 1.0.$BUILD_NUMBER" > build_info.txt
+                    tar -czvf service-build-${BUILD_NUMBER}.tar.gz build_info.txt
+                '''
+            }
+        }
+    }
+
+    post {
+        failure {
+        
+            // Task 5: Send a real email notification
+            mail to: 'madxxxxxxxxxx.k@gmail.com',
+                 subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
+                 body: "Something went wrong with build ${env.BUILD_URL}. Check the archived logs."
+
+            // Task 5: Archive failed logs in a dedicated location
+            sh 'mkdir -p failure_logs'
+            sh 'echo "Failure detected on node: ${NODE_NAME}" > failure_logs/build_error.txt'
+            archiveArtifacts artifacts: 'failure_logs/*.txt', fingerprint: true
+        }
+       always {
+            // Task: Implement a cleanup step to remove old artifacts
+            cleanWs() 
+            echo "Workspace cleaned after build execution."
+        }
+    }
+}
+-----------------
+
+
+
+<img width="533" height="382" alt="image" src="https://github.com/user-attachments/assets/c20804f3-d6c5-48a9-8c13-54b743628f53" />
+
+
+<img width="620" height="136" alt="image" src="https://github.com/user-attachments/assets/8e005044-0264-43fe-ade6-b3cfe955d2c2" />
+
+
+<img width="545" height="77" alt="image" src="https://github.com/user-attachments/assets/58692662-c1bd-4f26-b499-56816a2dfc7f" />
+
+
 
 
 
