@@ -17,4 +17,5 @@ jobs:
         with:
           app-name: 'madhu-java-app' # Unique Azure App Name
           publish-profile: ${{ secrets.AZURE_API_PUBLISH_PROFILE  }}
+          package: target/*.jar
 
