@@ -1,0 +1,20 @@
+name: Microservices Deployment
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  # simple-java-app
+  deploy-api-gateway:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Service One
+        run: mvn clean install -DskipTests
+      - name: Deploy Service api-gateway to Azure
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'madhu-java-app' # Unique Azure App Name
+          publish-profile: ${{ secrets.AZURE_API_PUBLISH_PROFILE  }}
+
