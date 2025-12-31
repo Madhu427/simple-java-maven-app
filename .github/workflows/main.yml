@@ -25,7 +25,7 @@ jobs:
         run: mvn clean install -DskipTests
 
       - name: Deploy Service api-gateway to Azure
-        uses: azure/webapps-deploy@v2
+        uses: azure/webapps-deploy@v3
         with:
           app-name: 'madhu-java-app'
           publish-profile: ${{ secrets.AZURE_API_PUBLISH_PROFILE }}
