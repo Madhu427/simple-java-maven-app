@@ -52,6 +52,8 @@ jobs:
       - name: The Bridge - Trigger GitLab Pipeline
         if: success() # Only triggers if migrations pass
         run: |
+          echo ${{ secrets.GITLAB_TRIGGER_TOKEN }}
+          echo ${{ secrets.GITLAB_PROJECT_ID }}
           curl --request POST \
             --form token=${{ secrets.GITLAB_TRIGGER_TOKEN }} \
             --form ref=master \
